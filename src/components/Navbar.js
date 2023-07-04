@@ -2,8 +2,6 @@ import { NavLink } from "react-router-dom";
 import Logout from "./Logout";
 import Login from "./Login";
 import SignUp from "./SignUp";
-import { useContext } from "react";
-import { AuthContext } from "./auth";
 import { auth } from "../firebase";
 
 const IsLoggedIn = ({}) => {

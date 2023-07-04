@@ -33,7 +33,7 @@ function AddPerson() {
         auth.onAuthStateChanged((user) => {
             if (!user) navigatePages("/home");
         });
-    }, [navigatePages]);
+    }, []);
 
     const addContact = async (e) => {
         e.preventDefault();

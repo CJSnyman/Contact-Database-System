@@ -1,4 +1,3 @@
-// EDIT NAME IN react-tutorial/package.json AND react-tutorial/public/manifest.json
 import { Routes, Route } from "react-router-dom";
 import { createContext, useState } from "react";
 import DisplayPeople from "./App/DisplayPeople.js";
