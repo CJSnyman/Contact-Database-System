@@ -19,6 +19,9 @@ const ExpandedInfo = (props) => {
                     <span className="light_grey">~ {item.occupation}</span>
                 </p>
                 <p>{item.town}</p>
+                <p>{item.date}</p>
+                <p>{item.number}</p>
+                <p>{item.email}</p>
                 <div>
                     <h4>Motivation</h4>
                     {Object.entries(item.motivation)
@@ -67,6 +70,7 @@ const CompactInfo = (props) => {
 
 const PeopleToRender = (props) => {
     const [expanded, setExpanded] = useState([]);
+    const people = props.people;
 
     const addExpansion = (item) => {
         setExpanded([...expanded, item]);
@@ -76,7 +80,6 @@ const PeopleToRender = (props) => {
         setExpanded(expanded.filter((listItem) => listItem !== item));
     };
 
-    const people = props.people;
     if (people.length === 0) {
         return <h4 style={{ textAlign: "center" }}>Please add someone.</h4>;
     }

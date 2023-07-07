@@ -15,7 +15,7 @@ export default function Login() {
         try {
             await signInWithEmailAndPassword(auth, email, password);
             console.log("log in success");
-            navigatePages("/");
+            navigatePages("/dashboard");
         } catch (err) {
             console.error(err);
             setError("User email/password is incorrect.");
@@ -27,7 +27,7 @@ export default function Login() {
         try {
             await signInWithPopup(auth, googleProvider);
             console.log("google sign in success");
-            navigatePages("/");
+            navigatePages("/dashboard");
         } catch (err) {
             console.error(err);
         }

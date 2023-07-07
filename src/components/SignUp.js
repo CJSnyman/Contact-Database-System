@@ -26,7 +26,7 @@ export default function SignUp() {
             console.log(auth.currentUser);
             await updateProfile(auth.currentUser, { displayName: username, photoURL: "" });
             console.log("sign up success");
-            navigatePages("/");
+            navigatePages("/dashboard");
         } catch (err) {
             console.error(err);
             if ({ err }.err.code === "auth/missing-email") {
@@ -41,7 +41,7 @@ export default function SignUp() {
         e.preventDefault();
         try {
             await signInWithPopup(auth, googleProvider);
-            console.log("google sign up success");
+            console.log("Google sign up success");
         } catch (err) {
             console.error(err);
         }

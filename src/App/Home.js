@@ -8,7 +8,7 @@ const Home = () => {
 
     useEffect(() => {
         auth.onAuthStateChanged((user) => {
-            if (user) navigatePages("/");
+            if (user) navigatePages("/dashboard");
         });
     }, []);
 

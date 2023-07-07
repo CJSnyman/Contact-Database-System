@@ -8,13 +8,15 @@ export default function Dashboard() {
     const [peoplesContacts, setPeoplesContacts] = useState([]);
     const [clientCount, setClientCount] = useState(0);
     const [builderCount, setBuilderCount] = useState(0);
+    const [clientPercentage, setClientPercentage] = useState(0);
+    const [builderPercentage, setBuilderPercentage] = useState(0);
     const [loadingContacts, setLoadingContacts] = useState(false);
     const navigatePages = useNavigate();
 
     useEffect(() => {
         auth.onAuthStateChanged((user) => {
             if (!user) {
-                navigatePages("/home");
+                navigatePages("/");
             } else {
                 getContactsFromDB();
             }
@@ -32,12 +34,16 @@ export default function Dashboard() {
         });
         setClientCount(prospectCount[0]);
         setBuilderCount(prospectCount[1]);
+        setClientPercentage(Math.round((prospectCount[0] / peoplesContacts.length) * 100));
+        setBuilderPercentage(Math.round((prospectCount[1] / peoplesContacts.length) * 100));
     }, [peoplesContacts]);
 
     const getContactsFromDB = async () => {
         setLoadingContacts(true);
         try {
-            const data = await getDocs(collection(db, `${auth.currentUser.uid}contacts`));
+            const data = await getDocs(
+                collection(db, `${auth.currentUser.displayName}${auth.currentUser.uid}`)
+            );
             const contactPeople = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
             setPeoplesContacts(contactPeople);
             sessionStorage.setItem("contactAppContacts", JSON.stringify(contactPeople));
@@ -53,7 +59,7 @@ export default function Dashboard() {
     if (auth.currentUser) {
         return (
             <>
-                <Navbar page="dashboard" />
+                <Navbar />
                 <div>
                     <h1>Dashboard</h1>
                     {loadingContacts ? (
@@ -61,10 +67,35 @@ export default function Dashboard() {
                     ) : (
                         <>
                             <p>You have {peoplesContacts.length} contacts.</p>
-                            <p>
-                                {clientCount} is Client{clientCount !== 1 && "s"} and {builderCount}{" "}
-                                is Business Builder{builderCount !== 1 && "s"}.
-                            </p>
+                            {peoplesContacts.length > 0 && (
+                                <div>
+                                    <p>
+                                        <b>
+                                            <span style={{ backgroundColor: "lightgreen" }}>
+                                                {clientCount} ({clientPercentage}%) is{" "}
+                                                {clientCount !== 1 ? "Clients" : "a Client"}
+                                            </span>{" "}
+                                        </b>
+                                        and
+                                        <b>
+                                            {" "}
+                                            <span style={{ backgroundColor: "lightblue" }}>
+                                                {builderCount} ({builderPercentage}%) is{" "}
+                                                {builderCount !== 1
+                                                    ? "Business Builders"
+                                                    : "a Business Builder"}
+                                            </span>
+                                            .
+                                        </b>
+                                    </p>
+                                    <div
+                                        style={{
+                                            backgroundImage: `linear-gradient(90deg, green ${clientPercentage}%, blue ${builderPercentage}%)`,
+                                            height: "1rem",
+                                        }}
+                                    ></div>
+                                </div>
+                            )}
                         </>
                     )}
                 </div>

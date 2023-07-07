@@ -8,7 +8,7 @@ const Logout = ({ className = "" }) => {
         try {
             await signOut(auth);
             console.log("signed out");
-            navigatePages("/home");
+            navigatePages("/");
         } catch (err) {
             console.error(err);
         }

@@ -10,11 +10,15 @@ const IsLoggedIn = ({}) => {
     return (
         <div className="primary-navigation-logged-in grid">
             <div className="userBlock">
-                <p className="userLogo">{currentUser?.displayName[0].toUpperCase()}</p>
+                <p className="userLogo">
+                    {currentUser.displayName
+                        ? currentUser.displayName[0].toUpperCase()
+                        : currentUser?.email}
+                </p>
                 <Logout className="primary-navigation-logout" />
             </div>
             <ul className="primary-navigation-routes">
-                <NavLink to="/">Dashboard</NavLink>
+                <NavLink to="/dashboard">Dashboard</NavLink>
                 <NavLink to="/contacts">Contacts</NavLink>
                 <NavLink to="/addcontact">Add Contact</NavLink>
             </ul>

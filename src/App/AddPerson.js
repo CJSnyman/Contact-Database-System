@@ -11,6 +11,8 @@ function AddPerson() {
     const [age, setAge] = useState(16);
     const [occupation, setOccupation] = useState("");
     const [town, setTown] = useState("");
+    const [cellNumber, setCellNumber] = useState("");
+    const [email, setEmail] = useState("");
     const [prospect, setProspect] = useState("Client");
     const [motivation, setMotivation] = useState([
         { label: "Family", rank: 0 },
@@ -27,11 +29,37 @@ function AddPerson() {
     const [surnameError, setSurnameError] = useState(true);
     const [townError, setTownError] = useState(true);
     const [addingContact, setAddingContact] = useState(false);
+    const [maxUsersReached, setMaxUsersReached] = useState(true);
     const navigatePages = useNavigate();
+    const months = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sept",
+        "Oct",
+        "Nov",
+        "Dec",
+    ];
 
     useEffect(() => {
         auth.onAuthStateChanged((user) => {
-            if (!user) navigatePages("/home");
+            if (!user) {
+                navigatePages("/");
+            } else {
+                const contactCount = JSON.parse(
+                    sessionStorage.getItem("contactAppContacts")
+                ).length;
+                if (contactCount >= 10) {
+                    setMaxUsersReached(true);
+                } else {
+                    setMaxUsersReached(false);
+                }
+            }
         });
     }, []);
 
@@ -40,17 +68,26 @@ function AddPerson() {
 
         if (!nameError && !surnameError && !townError) {
             setAddingContact(true);
+            const currentDate = getCurrentDate();
             try {
-                await addDoc(collection(db, `${auth.currentUser.uid}contacts`), {
-                    name: name + " " + surname,
-                    age: age,
-                    occupation: occupation,
-                    town: town,
-                    prospect: prospect,
-                    motivation: motivation,
-                    comment: comment,
-                });
-                const data = await getDocs(collection(db, `${auth.currentUser.uid}contacts`));
+                await addDoc(
+                    collection(db, `${auth.currentUser.displayName}${auth.currentUser.uid}`),
+                    {
+                        date: currentDate,
+                        name: name + " " + surname,
+                        age: age,
+                        occupation: occupation,
+                        town: town,
+                        prospect: prospect,
+                        motivation: motivation,
+                        comment: comment,
+                        number: cellNumber,
+                        email: email,
+                    }
+                );
+                const data = await getDocs(
+                    collection(db, `${auth.currentUser.displayName}${auth.currentUser.uid}`)
+                );
                 const contactPeople = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
                 sessionStorage.setItem("contactAppContacts", JSON.stringify(contactPeople));
                 setName("");
@@ -85,6 +122,11 @@ function AddPerson() {
         }
     };
 
+    const getCurrentDate = () => {
+        const date = new Date();
+        return `${date.getDate()}/${months[date.getMonth()]}/${date.getFullYear()}`;
+    };
+
     const handleMotivation = (items) => {
         setMotivation(items);
     };
@@ -107,124 +149,156 @@ function AddPerson() {
         }
     }, [name, town, surname]);
 
-    return (
-        <>
-            <Navbar page="addcontact" />
-            <main>
-                <h2>Add Contact</h2>
-                <form id="add_form" name="add_form">
-                    <div className="form_grid_wrapper add_input">
-                        <h3 className="add-contact-form-heading">Primary Info</h3>
-                        <label className="form_grid_item">
-                            Name <br />
-                            <input
-                                type="text"
-                                id="name"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                required
-                            />
-                            <br />
-                            <span className="error">{nameError ? "Required" : " "}</span>
-                        </label>
-                        <label className="form_grid_item">
-                            Surname <br />
-                            <input
-                                type="text"
-                                id="surname"
-                                value={surname}
-                                onChange={(e) => {
-                                    setSurname(e.target.value);
-                                }}
-                            />
-                            <br />
-                            <span className="error">{surnameError ? "Required" : " "}</span>
-                        </label>
-                        <label className="form_grid_item">
-                            Age <br />
-                            <input
-                                type="number"
-                                min="16"
-                                max="120"
-                                id="age"
-                                value={age}
-                                onChange={(e) => setAge(e.target.value)}
-                            />
-                            <br />
-                        </label>
-                        <label className="form_grid_item">
-                            Town <br />
-                            <input
-                                type="text"
-                                id="town"
-                                value={town}
-                                onChange={(e) => setTown(e.target.value)}
-                            />
-                            <br />
-                            <span className="error">{townError ? "Required" : " "}</span>
-                        </label>
-                        <label className="form_grid_item">
-                            Occupation <br />
-                            <input
-                                type="text"
-                                id="occupation"
-                                value={occupation}
-                                onChange={(e) => {
-                                    setOccupation(e.target.value);
-                                }}
-                            />
-                        </label>
-                        <label className="form_grid_item">
-                            Prospect Type: <br />
-                            <label className="form_grid_item" htmlFor="client"></label>
-                            <input
-                                className="prospect-type"
-                                type="radio"
-                                id="client"
-                                name="prospect_type"
-                                checked={prospect === "Client"}
-                                value="Client"
-                                onChange={(e) => setProspect(e.target.value)}
-                            />
-                            Client
-                            <label className="form_grid_item" htmlFor="business_builder"></label>
-                            <input
-                                className="prospect-type"
-                                type="radio"
-                                id="business_builder"
-                                name="prospect_type"
-                                checked={prospect === "Business Builder"}
-                                value="Business Builder"
-                                onChange={(e) => setProspect(e.target.value)}
-                            />
-                            Business Builder
-                        </label>
-                        <h3 className="add-contact-form-heading">Ranking Motivation</h3>
-                        <Ranker
-                            items={motivation}
-                            setMotivation={handleMotivation}
-                            clearRanks={clearRanks}
-                            setClearRanks={setClearRanks}
-                        ></Ranker>
-                        <label className="form_grid_item">
-                            Comment <br />
-                            <textarea
-                                id="comment"
-                                value={comment}
-                                cols="30"
-                                rows="10"
-                                onChange={(e) => setComment(e.target.value)}
-                            ></textarea>
-                        </label>
-                        <p className="error" id="submit_error"></p>
-                    </div>
-                    <button type="submit" id="add_button" onClick={addContact}>
-                        {addingContact === true ? "Adding" : "Add"}
-                    </button>
-                </form>
-            </main>
-        </>
-    );
+    if (auth.currentUser) {
+        if (maxUsersReached) {
+            return (
+                <>
+                    <Navbar />
+                    <h4>You have reached the maximum amount of contacts.</h4>
+                </>
+            );
+        }
+
+        return (
+            <>
+                <Navbar />
+                <main>
+                    <h2>Add Contact</h2>
+                    <form id="add_form" name="add_form">
+                        <div className="form_grid_wrapper add_input">
+                            <h3 className="add-contact-form-heading">Primary Info</h3>
+                            <label className="form_grid_item">
+                                Name <br />
+                                <input
+                                    type="text"
+                                    id="name"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    required
+                                />
+                                <br />
+                                <span className="error">{nameError ? "Required" : " "}</span>
+                            </label>
+                            <label className="form_grid_item">
+                                Surname <br />
+                                <input
+                                    type="text"
+                                    id="surname"
+                                    value={surname}
+                                    onChange={(e) => {
+                                        setSurname(e.target.value);
+                                    }}
+                                />
+                                <br />
+                                <span className="error">{surnameError ? "Required" : " "}</span>
+                            </label>
+                            <label className="form_grid_item">
+                                Age <br />
+                                <input
+                                    type="number"
+                                    min="16"
+                                    max="120"
+                                    id="age"
+                                    value={age}
+                                    onChange={(e) => setAge(e.target.value)}
+                                />
+                                <br />
+                            </label>
+                            <label className="form_grid_item">
+                                Town <br />
+                                <input
+                                    type="text"
+                                    id="town"
+                                    value={town}
+                                    onChange={(e) => setTown(e.target.value)}
+                                />
+                                <br />
+                                <span className="error">{townError ? "Required" : " "}</span>
+                            </label>
+                            <label className="form_grid_item">
+                                Occupation <br />
+                                <input
+                                    type="text"
+                                    id="occupation"
+                                    value={occupation}
+                                    onChange={(e) => {
+                                        setOccupation(e.target.value);
+                                    }}
+                                />
+                            </label>
+                            <label className="form_grid_item">
+                                Contact Number <br />
+                                <input
+                                    type="text"
+                                    id="contactNumber"
+                                    value={cellNumber}
+                                    onChange={(e) => setCellNumber(e.target.value)}
+                                />
+                            </label>
+                            <label className="form_grid_item">
+                                Email <br />
+                                <input
+                                    type="email"
+                                    id="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                />
+                            </label>
+                            <label className="form_grid_item">
+                                Prospect Type: <br />
+                                <label className="form_grid_item" htmlFor="client"></label>
+                                <input
+                                    className="prospect-type"
+                                    type="radio"
+                                    id="client"
+                                    name="prospect_type"
+                                    checked={prospect === "Client"}
+                                    value="Client"
+                                    onChange={(e) => setProspect(e.target.value)}
+                                />
+                                Client
+                                <label
+                                    className="form_grid_item"
+                                    htmlFor="business_builder"
+                                ></label>
+                                <input
+                                    className="prospect-type"
+                                    type="radio"
+                                    id="business_builder"
+                                    name="prospect_type"
+                                    checked={prospect === "Business Builder"}
+                                    value="Business Builder"
+                                    onChange={(e) => setProspect(e.target.value)}
+                                />
+                                Business Builder
+                            </label>
+                            <h3 className="add-contact-form-heading">Ranking Motivation</h3>
+                            <Ranker
+                                items={motivation}
+                                setMotivation={handleMotivation}
+                                clearRanks={clearRanks}
+                                setClearRanks={setClearRanks}
+                            ></Ranker>
+                            <label className="form_grid_item">
+                                Comment <br />
+                                <textarea
+                                    id="comment"
+                                    value={comment}
+                                    cols="30"
+                                    rows="10"
+                                    onChange={(e) => setComment(e.target.value)}
+                                ></textarea>
+                            </label>
+                            <p className="error" id="submit_error"></p>
+                        </div>
+                        <button type="submit" id="add_button" onClick={addContact}>
+                            {addingContact === true ? "Adding" : "Add"}
+                        </button>
+                    </form>
+                </main>
+            </>
+        );
+    }
 }
 
 export default AddPerson;
